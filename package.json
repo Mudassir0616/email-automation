@@ -1,0 +1,23 @@
+{
+  "name": "zelectronics-email-automation",
+  "version": "0.1.0",
+  "description": "Self-hosted cold-email outreach engine for Zelectronics (Nodemailer + Titan SMTP)",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:send": "node scripts/test-send.js",
+    "dry": "DRY_RUN=true node scripts/test-send.js",
+    "campaign": "node scripts/campaign.js",
+    "leads": "node scripts/leads-stats.js",
+    "export:status": "node scripts/export-status.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "nodemailer": "^10.0.10",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}

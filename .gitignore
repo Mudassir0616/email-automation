@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.local
+*.log
+logs/
+.DS_Store
+
+# lead data + send log stay local and out of git
+data/*.xlsx
+data/send-log.json
+data/*.csv
