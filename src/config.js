@@ -7,6 +7,8 @@
  * can trust the values it gets.
  */
 
+import path from 'node:path';
+import fs from 'node:fs';
 import 'dotenv/config';
 
 /** Read a required string. Throws early (at import time) if it is missing. */
@@ -59,16 +61,32 @@ export const config = {
     name: optional('FROM_NAME', 'Zaid'),
     email: optional('FROM_EMAIL', process.env.SMTP_USER?.trim() ?? ''),
     replyTo: optional('REPLY_TO'),
-    // Who signs the email body. Defaults to whatever FROM_NAME is set to, so
-    // the From: header and the signature agree unless SIGNOFF_NAME overrides it.
-    signoff: optional('SIGNOFF_NAME', optional('FROM_NAME', 'Zaid')),
+    // First name used in the greeting ("I'm Zaid, Founder of..."). Kept
+    // deliberately independent of FROM_NAME — that's often the business
+    // brand (e.g. "Zelectronics"), and falling back to it here used to
+    // produce "I'm Zelectronics, Founder of Zelectronics".
+    signoff: optional('SIGNOFF_NAME', 'Zaid'),
+    // Full name for the sign-off line ("Best regards, Zaid Shaikh").
+    // Falls back to the first name above if not set separately.
+    fullName: optional('SIGNOFF_FULL_NAME', optional('SIGNOFF_NAME', 'Zaid')),
     // Rest of the signature block.
     title: optional('SIGNOFF_TITLE', 'Founder'),
     // Falls back to a real number rather than '' — an empty value would leave
     // {{senderPhone}} unfilled in the template, which sendEmail() refuses to
     // send (see the unfilled-placeholder check in mailer.js).
-    phone: optional('SIGNOFF_PHONE', '+91 9833991300'),
+    phone: optional('SIGNOFF_PHONE', '+91 84518 64754'),
     website: optional('WEBSITE_URL', 'www.zelectronics.co'),
+  },
+
+  attachment: {
+    // On by default because it was asked for explicitly. See the note in
+    // scripts/campaign.js about the deliverability trade-off — this is the
+    // one switch to flip off (no code change) if bounce/spam rates climb.
+    enabled: bool('ATTACH_COMPANY_PROFILE', true),
+    path: optional(
+      'COMPANY_PROFILE_PATH',
+      path.resolve('assets/Zelectronics-Company-Introduction.pdf')
+    ),
   },
 
   limits: {
@@ -96,3 +114,28 @@ export function enableDryRun() {
 
 /** `"Zelectronics" <sales@zelectronics.co>` — the RFC-5322 From header. */
 export const fromHeader = `"${config.sender.name}" <${config.sender.email}>`;
+
+/**
+ * The company-profile PDF as a Nodemailer attachment descriptor, or `null`
+ * if attachments are turned off. Fails loudly (not silently) if the file is
+ * missing while enabled — better a clear startup error than 2000 mails that
+ * quietly went out without the PDF everyone expects.
+ *
+ * @returns {{ filename: string, path: string, contentType: string } | null}
+ */
+export function companyProfileAttachment() {
+  if (!config.attachment.enabled) return null;
+
+  if (!fs.existsSync(config.attachment.path)) {
+    throw new Error(
+      `ATTACH_COMPANY_PROFILE is on but no file exists at ${config.attachment.path}. ` +
+        `Set COMPANY_PROFILE_PATH, or set ATTACH_COMPANY_PROFILE=false to send without it.`
+    );
+  }
+
+  return {
+    filename: 'Zelectronics-Company-Introduction.pdf',
+    path: config.attachment.path,
+    contentType: 'application/pdf',
+  };
+}

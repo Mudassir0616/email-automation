@@ -19,10 +19,17 @@
  *
  * Safety: every send is written to data/send-log.json before the next one
  * starts, so nobody is ever emailed twice — even if the run crashes.
+ *
+ * Attachment: every mail includes assets/Zelectronics-Company-Introduction.pdf
+ * by default (ATTACH_COMPANY_PROFILE=true). Worth knowing: unsolicited
+ * attachments on a cold first-touch are a heavier spam-filter signal than a
+ * link would be, especially from a domain without much sending history yet.
+ * If bounce/spam-complaint rates look bad, `ATTACH_COMPANY_PROFILE=false` in
+ * .env turns it off with no code change — no other file needs to be touched.
  */
 
 import process from 'node:process';
-import { config, fromHeader, enableDryRun } from '../src/config.js';
+import { config, fromHeader, enableDryRun, companyProfileAttachment } from '../src/config.js';
 import { verifyConnection, sendEmail, closeTransport } from '../src/mailer.js';
 import { loadLeads } from '../src/leads.js';
 import { SendLog } from '../src/sendLog.js';
@@ -92,10 +99,16 @@ async function main() {
   });
 
   // --- 4. Confirm, then verify SMTP --------------------------------------
+  // Resolved once (same file for every lead) and reused across the whole run.
+  // Throws early if ATTACH_COMPANY_PROFILE=true but the PDF is missing —
+  // better that than 2000 mails quietly going out without it.
+  const attachment = companyProfileAttachment();
+
   console.log('');
   log.info(dryRun ? `DRY RUN — previewing ${queue.length} message(s)` : 'LIVE SEND', {
     queued: queue.length,
     from: fromHeader,
+    attachment: attachment ? attachment.filename : '(none)',
     firstFew: queue.slice(0, 3).map((l) => l.email),
   });
 
@@ -140,6 +153,7 @@ async function main() {
     const result = await sendEmail({
       ...message,
       to: lead.email,
+      ...(attachment ? { attachments: [attachment] } : {}),
       meta: { leadId: lead.leadId, row: lead.rowNumber, company: lead.company, step: STEP },
     });
 
@@ -212,6 +226,7 @@ function buildMessage(lead) {
     firstName: greetingName,
     company: companyLabel,
     senderName: config.sender.signoff,
+    senderFullName: config.sender.fullName,
     senderTitle: config.sender.title,
     senderPhone: config.sender.phone,
     fromEmail: config.sender.email,

@@ -12,7 +12,7 @@
  *   3. sends one real message through the same code path a campaign uses
  */
 
-import { config, fromHeader } from '../src/config.js';
+import { config, fromHeader, companyProfileAttachment } from '../src/config.js';
 import { verifyConnection, sendEmail, closeTransport } from '../src/mailer.js';
 import { renderMessage, TEMPLATES } from '../src/templates.js';
 import { log } from '../src/logger.js';
@@ -55,6 +55,7 @@ async function main() {
     firstName: 'there',
     company: 'your team',
     senderName: config.sender.signoff,
+    senderFullName: config.sender.fullName,
     senderTitle: config.sender.title,
     senderPhone: config.sender.phone,
     fromEmail: config.sender.email,
@@ -63,11 +64,15 @@ async function main() {
       '[test send] This is the placeholder where the AI-personalised opening line goes.',
   });
 
+  const attachment = companyProfileAttachment();
+  log.info('Attachment', { file: attachment ? attachment.filename : '(none — ATTACH_COMPANY_PROFILE is off)' });
+
   const result = await sendEmail({
     to: recipient,
     subject: `[TEST] ${subject}`,
     text,
     html: toSimpleHtml(text),
+    ...(attachment ? { attachments: [attachment] } : {}),
     meta: { source: 'test-send' },
   });
 

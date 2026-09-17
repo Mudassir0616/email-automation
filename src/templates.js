@@ -11,6 +11,7 @@
  *     company: 'Acme Labs',
  *     aiOpener: 'Saw you just opened a second office in Andheri — congrats.',
  *     senderName: config.sender.signoff,
+ *     senderFullName: config.sender.fullName,
  *     senderTitle: config.sender.title,
  *     senderPhone: config.sender.phone,
  *     fromEmail: config.sender.email,
@@ -77,7 +78,7 @@ Want me to send pricing for a few laptop models, or would a quick call work
 better?
 
 Best regards,
-{{senderName}}
+{{senderFullName}}
 {{senderTitle}} | Zelectronics
 📞 {{senderPhone}}
 ✉️ {{fromEmail}}

@@ -25,7 +25,8 @@ Signature block (used in the email body, separate from the SMTP login):
 
 | Variable | Meaning |
 | --- | --- |
-| `SIGNOFF_NAME` | Who signs the email — a person, not the brand (e.g. `Zaid`) |
+| `SIGNOFF_NAME` | First name, used in the greeting line (e.g. `Zaid`) — a person, not the brand |
+| `SIGNOFF_FULL_NAME` | Full name for "Best regards," (e.g. `Zaid Shaikh`) — falls back to `SIGNOFF_NAME` |
 | `SIGNOFF_TITLE` | e.g. `Founder` |
 | `SIGNOFF_PHONE` | Shown in the signature |
 | `WEBSITE_URL` | Shown in the signature |
@@ -131,6 +132,26 @@ twice, which means:
   on the next run, while a successful send never is.
 
 Dry runs are never written to it.
+
+## Company profile attachment
+
+Every mail attaches `assets/Zelectronics-Company-Introduction.pdf` (54 KB) by
+default:
+
+| Variable | Meaning |
+| --- | --- |
+| `ATTACH_COMPANY_PROFILE` | `true`/`false` — on by default |
+| `COMPANY_PROFILE_PATH` | Path to the PDF, if you move or replace it |
+
+Both `npm run test:send` and `npm run campaign` resolve it the same way, once
+per run, via `companyProfileAttachment()` in `src/config.js`. If
+`ATTACH_COMPANY_PROFILE=true` but the file doesn't exist at that path, the run
+fails immediately with a clear error rather than quietly sending without it.
+
+Worth knowing: an unsolicited attachment on a cold first-touch is a heavier
+spam-filter signal than a link, especially before `zelectronics.co` has built
+up sending reputation. If bounce or spam-complaint rates look bad, set
+`ATTACH_COMPANY_PROFILE=false` in `.env` — no code change needed.
 
 ## Hooks for the next chunks
 
