@@ -165,6 +165,54 @@ up sending reputation. If bounce or spam-complaint rates look bad, set
   from an IMAP poll — `suppressedEmails()` already excludes those addresses
   from every future run.
 
+## Job application campaign (personal Gmail)
+
+A second, fully independent sending flow for job-hunting outreach — its own
+mailbox (Gmail instead of Titan), its own template, its own recipient file,
+its own send log (`data/job-application-send-log.json`) and its own rate
+limits. Running this never touches the Zelectronics business-outreach state
+above, and vice versa.
+
+### Setup
+
+1. Turn on 2-Step Verification on the Gmail account, then create an App
+   Password: **Google Account → Security → 2-Step Verification → App
+   passwords**.
+2. Fill in the "Job application campaign" block in `.env`:
+   `JOB_GMAIL_USER`, `JOB_GMAIL_APP_PASSWORD` (the 16-character app password
+   — not your normal Gmail password), plus the signature fields
+   (`JOB_SENDER_PHONE`, `JOB_LINKEDIN_URL`, …).
+3. The CV attached to every mail is `assets/Mudassir_CV.pdf`
+   (`JOB_CV_PATH` to point elsewhere). `cvAttachment()` throws immediately if
+   it's missing — a run never goes out silently without a resume attached.
+4. Recipients come from `data/job-application-recipients.xlsx`, sheet
+   `Recipients`, with the same columns as the leads file: `company`,
+   `contact_name`, `email`, `status` (`Not Contacted` to be eligible).
+
+### Test it
+
+```bash
+npm run job:dry                            # renders + prints the mail, sends nothing
+npm run job:test                           # sends to JOB_TEST_RECIPIENT
+npm run job:test -- you@gmail.com          # sends to a specific address
+```
+
+### Run it
+
+```bash
+npm run job:campaign -- --dry --limit 5    # preview 5, sends nothing
+npm run job:campaign -- --limit 10         # actually send 10
+npm run job:campaign -- --to hr@company.com
+```
+
+Same flags as `npm run campaign` (`--limit`, `--to`, `--file`, `--sheet`,
+`--yes`) minus `--tier`, which doesn't apply here.
+
+Keep `JOB_DAILY_SEND_LIMIT` low (defaults to 15/day, 8/hour, 60s between
+sends) — a personal Gmail account has far less sending reputation than a
+business domain, and application mail sent in a burst reads as spam to
+Google's filters faster than you'd expect.
+
 ## Deliverability notes
 
 - Keep `DAILY_SEND_LIMIT` low (20–40) for the first few weeks on a new sending

@@ -21,41 +21,61 @@ import { log } from './logger.js';
 let transporter = null;
 
 /**
- * Build (once) and return the shared SMTP transport.
- * @returns {import('nodemailer').Transporter}
+ * Shared transport options: one authenticated pooled connection, gentle
+ * concurrency, and fail-fast timeouts so a batch run can't hang forever.
+ * @param {{host: string, port: number, secure: boolean, auth: {user: string, pass: string}}} smtpConfig
  */
-export function getTransporter() {
-  if (transporter) return transporter;
+function transportOptions(smtpConfig) {
+  return {
+    host: smtpConfig.host,
+    port: smtpConfig.port,
+    secure: smtpConfig.secure, // true => implicit TLS (465)
+    auth: smtpConfig.auth,
 
-  transporter = nodemailer.createTransport({
-    host: config.smtp.host,
-    port: config.smtp.port,
-    secure: config.smtp.secure, // true => implicit TLS (465)
-    auth: config.smtp.auth,
-
-    // Reuse one authenticated connection across many messages.
     pool: true,
     maxConnections: 1, // stay gentle: a single stream of mail, like a human
     maxMessages: 50, // reconnect after 50 messages on the same session
 
-    // Fail fast instead of hanging a batch run forever.
     connectionTimeout: 15_000,
     greetingTimeout: 10_000,
     socketTimeout: 30_000,
 
     tls: {
       minVersion: 'TLSv1.2',
-      servername: config.smtp.host,
+      servername: smtpConfig.host,
     },
-  });
+  };
+}
+
+/**
+ * Build a standalone SMTP transport for a given account — independent of the
+ * shared singleton below. Used by flows that send from a different mailbox
+ * than the main one configured in `config.smtp` (e.g. the job-application
+ * campaign, which sends from a personal Gmail account instead of Titan).
+ *
+ * @param {{host: string, port: number, secure: boolean, auth: {user: string, pass: string}}} smtpConfig
+ * @returns {import('nodemailer').Transporter}
+ */
+export function createTransport(smtpConfig) {
+  const t = nodemailer.createTransport(transportOptions(smtpConfig));
 
   log.info('SMTP transport created', {
-    host: config.smtp.host,
-    port: config.smtp.port,
-    secure: config.smtp.secure,
-    user: config.smtp.auth.user,
+    host: smtpConfig.host,
+    port: smtpConfig.port,
+    secure: smtpConfig.secure,
+    user: smtpConfig.auth.user,
   });
 
+  return t;
+}
+
+/**
+ * Build (once) and return the shared SMTP transport for `config.smtp`.
+ * @returns {import('nodemailer').Transporter}
+ */
+export function getTransporter() {
+  if (transporter) return transporter;
+  transporter = createTransport(config.smtp);
   return transporter;
 }
 
@@ -64,16 +84,17 @@ export function getTransporter() {
  * Run this once at the start of a batch — it turns a wrong password into one
  * clear error instead of N identical failures.
  *
+ * @param {import('nodemailer').Transporter} [t] Defaults to the shared singleton.
  * @returns {Promise<boolean>} true if the server accepted our login
  */
-export async function verifyConnection() {
+export async function verifyConnection(t = getTransporter()) {
   if (config.dryRun) {
     log.warn('DRY_RUN is on — skipping SMTP verification');
     return true;
   }
 
   try {
-    await getTransporter().verify();
+    await t.verify();
     log.ok('SMTP connection verified — ready to send');
     return true;
   } catch (error) {
@@ -98,6 +119,12 @@ export async function verifyConnection() {
  * @param {Array}   [message.attachments] Nodemailer attachment descriptors.
  * @param {object}  [message.meta]     Arbitrary context (leadId, sheet row …)
  *                                     echoed back in the result and the logs.
+ * @param {import('nodemailer').Transporter} [message.transporter] Send through
+ *                                     this transport instead of the shared
+ *                                     singleton (e.g. a second account).
+ * @param {string}  [message.from]     Overrides the default From: header —
+ *                                     required when using a custom transporter
+ *                                     for a different mailbox.
  *
  * @returns {Promise<{
  *   success: boolean,
@@ -123,6 +150,8 @@ export async function sendEmail({
   headers,
   attachments,
   meta,
+  transporter: transporterOverride,
+  from,
 }) {
   const startedAt = Date.now();
 
@@ -141,7 +170,7 @@ export async function sendEmail({
   }
 
   const mail = {
-    from: fromHeader,
+    from: from ?? fromHeader,
     to,
     subject,
     // Always include a plain-text part: HTML-only mail scores worse with spam
@@ -175,7 +204,7 @@ export async function sendEmail({
 
   // --- Actually send -----------------------------------------------------
   try {
-    const info = await getTransporter().sendMail(mail);
+    const info = await (transporterOverride ?? getTransporter()).sendMail(mail);
     const durationMs = Date.now() - startedAt;
 
     log.ok(`Sent to ${to}`, {
@@ -282,11 +311,12 @@ function describeError(error) {
 
   let message = error?.message ?? String(error);
   if (code === 'EAUTH') {
-    message = `Authentication rejected by ${config.smtp.host}. Check SMTP_USER / SMTP_PASS — ` +
-      `Titan wants the full mailbox address as the username.`;
+    message = `Authentication rejected. Check the SMTP username/password — the full mailbox ` +
+      `address is expected as the username (for Gmail, a 16-character App Password, not the ` +
+      `account password). (${message})`;
   } else if (code === 'ECONNECTION' || code === 'ETIMEDOUT') {
-    message = `Could not reach ${config.smtp.host}:${config.smtp.port}. ` +
-      `If your network blocks 465, try SMTP_PORT=587 with SMTP_SECURE=false. (${message})`;
+    message = `Could not reach the SMTP server. If your network blocks port 465, try 587 with ` +
+      `SECURE=false. (${message})`;
   }
 
   return {

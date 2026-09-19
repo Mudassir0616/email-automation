@@ -101,6 +101,51 @@ export const config = {
   test: {
     recipient: optional('TEST_RECIPIENT'),
   },
+
+  // -------------------------------------------------------------------------
+  // Job-application campaign — a separate mailbox (personal Gmail) and a
+  // separate, lighter set of guardrails. Kept independent of `smtp`/`sender`
+  // above so this never touches the Zelectronics business outreach config.
+  // All fields here are optional at import time: only the job scripts read
+  // them, and they validate what they need lazily so unrelated scripts (e.g.
+  // the Zelectronics campaign) keep working even if these are unset.
+  // -------------------------------------------------------------------------
+  job: (() => {
+    const jobPort = int('JOB_SMTP_PORT', 465);
+    return {
+      smtp: {
+        host: optional('JOB_SMTP_HOST', 'smtp.gmail.com'),
+        port: jobPort,
+        secure: bool('JOB_SMTP_SECURE', jobPort === 465),
+        auth: {
+          user: optional('JOB_GMAIL_USER'),
+          pass: optional('JOB_GMAIL_APP_PASSWORD'),
+        },
+      },
+      sender: {
+        name: optional('JOB_FROM_NAME', 'Mudassir Shaikh'),
+        email: optional('JOB_FROM_EMAIL', optional('JOB_GMAIL_USER')),
+        replyTo: optional('JOB_REPLY_TO'),
+        fullName: optional('JOB_SENDER_FULL_NAME', 'Mudassir Shaikh'),
+        phone: optional('JOB_SENDER_PHONE', '+91 8928519499'),
+        linkedin: optional(
+          'JOB_LINKEDIN_URL',
+          'https://www.linkedin.com/in/mudassir-shaikh-7b6325243/'
+        ),
+      },
+      cv: {
+        path: optional('JOB_CV_PATH', path.resolve('assets/Mudassir_CV.pdf')),
+      },
+      limits: {
+        perDay: int('JOB_DAILY_SEND_LIMIT', 15),
+        perHour: int('JOB_HOURLY_SEND_LIMIT', 8),
+        minIntervalMs: int('JOB_MIN_SEND_INTERVAL_MS', 60_000),
+      },
+      test: {
+        recipient: optional('JOB_TEST_RECIPIENT'),
+      },
+    };
+  })(),
 };
 
 /**
@@ -114,6 +159,23 @@ export function enableDryRun() {
 
 /** `"Zelectronics" <sales@zelectronics.co>` — the RFC-5322 From header. */
 export const fromHeader = `"${config.sender.name}" <${config.sender.email}>`;
+
+/** `"Mudassir Shaikh" <mudassirshaikh6432@gmail.com>` — for the job campaign. */
+export const jobFromHeader = `"${config.job.sender.name}" <${config.job.sender.email}>`;
+
+/**
+ * Fail fast if the job-campaign mailbox isn't configured yet — a clear
+ * startup error beats a cryptic Gmail auth failure mid-batch.
+ */
+export function requireJobSmtpConfig() {
+  if (!config.job.smtp.auth.user || !config.job.smtp.auth.pass) {
+    throw new Error(
+      'JOB_GMAIL_USER / JOB_GMAIL_APP_PASSWORD are not set. Copy the "Job application ' +
+        'campaign" section from .env.example into .env and fill in a Gmail App Password ' +
+        '(Google Account -> Security -> 2-Step Verification -> App passwords).'
+    );
+  }
+}
 
 /**
  * The company-profile PDF as a Nodemailer attachment descriptor, or `null`
@@ -136,6 +198,28 @@ export function companyProfileAttachment() {
   return {
     filename: 'Zelectronics-Company-Introduction.pdf',
     path: config.attachment.path,
+    contentType: 'application/pdf',
+  };
+}
+
+/**
+ * The CV as a Nodemailer attachment descriptor for the job-application
+ * campaign. Unlike the company-profile attachment, this one is never
+ * optional — a job application without a resume defeats the point — so it
+ * always throws if the file is missing rather than silently omitting it.
+ *
+ * @returns {{ filename: string, path: string, contentType: string }}
+ */
+export function cvAttachment() {
+  if (!fs.existsSync(config.job.cv.path)) {
+    throw new Error(
+      `No CV found at ${config.job.cv.path}. Set JOB_CV_PATH in .env, or add the file there.`
+    );
+  }
+
+  return {
+    filename: path.basename(config.job.cv.path),
+    path: config.job.cv.path,
     contentType: 'application/pdf',
   };
 }

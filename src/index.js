@@ -4,10 +4,18 @@
  * here rather than reaching into individual files.
  */
 
-export { config, fromHeader, enableDryRun, companyProfileAttachment } from './config.js';
+export {
+  config,
+  fromHeader,
+  jobFromHeader,
+  enableDryRun,
+  companyProfileAttachment,
+  cvAttachment,
+  requireJobSmtpConfig,
+} from './config.js';
 export { loadLeads, readWorkbook, countBy, firstNameOf } from './leads.js';
 export { SendLog } from './sendLog.js';
-export { getTransporter, verifyConnection, sendEmail, closeTransport } from './mailer.js';
+export { getTransporter, createTransport, verifyConnection, sendEmail, closeTransport } from './mailer.js';
 export { render, renderMessage, TEMPLATES } from './templates.js';
 export { RateLimiter } from './rateLimiter.js';
 export { log } from './logger.js';

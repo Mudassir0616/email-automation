@@ -8,4 +8,5 @@ logs/
 # lead data + send log stay local and out of git
 data/*.xlsx
 data/send-log.json
+data/job-application-send-log.json
 data/*.csv

@@ -9,7 +9,10 @@
     "dry": "DRY_RUN=true node scripts/test-send.js",
     "campaign": "node scripts/campaign.js",
     "leads": "node scripts/leads-stats.js",
-    "export:status": "node scripts/export-status.js"
+    "export:status": "node scripts/export-status.js",
+    "job:test": "node scripts/test-send-job.js",
+    "job:dry": "DRY_RUN=true node scripts/test-send-job.js",
+    "job:campaign": "node scripts/job-application-campaign.js"
   },
   "keywords": [],
   "author": "",

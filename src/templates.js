@@ -87,4 +87,28 @@ Best regards,
 ---
 Not the right person? Just reply "not me" and I'll close the loop.`,
   },
+
+  /**
+   * Job-application outreach (personal campaign, not Zelectronics). Sent from
+   * a Gmail account with the CV attached — see scripts/job-application-campaign.js.
+   * `{{greetingLine}}` and `{{companyMention}}` are computed per-recipient
+   * (with/without a known contact name or company) rather than left as
+   * plain fields, since an empty placeholder value is left unfilled by
+   * render() and would fail the mailer's unfilled-placeholder check.
+   */
+  jobApplication: {
+    subject: 'Application for Frontend / Full Stack Developer – {{senderFullName}}',
+    text: `{{greetingLine}}
+
+I'm writing to express my interest in a Software Developer opportunity {{companyMention}}. With 4 years of hands-on experience across e-commerce platforms, SaaS applications, and portfolio websites, I've focused heavily on building scalable and reusable frontend systems.
+
+In my current role as a Senior Full Stack Developer (Frontend Lead) at WOLFx, I've worked on projects for clients like Mahindra, Indian Cyber Institute (ICI) and QuickSo India — delivering 15+ client projects end-to-end and improving Lighthouse performance scores by ~35% across production deployments.
+
+I've attached my resume for your review. I'd appreciate the opportunity to discuss how my experience aligns with your team's goals.
+
+Best regards,
+{{senderFullName}}
+{{senderPhone}}
+{{linkedinUrl}}`,
+  },
 };
