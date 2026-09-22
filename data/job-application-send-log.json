@@ -1,0 +1,104 @@
+{
+  "updatedAt": "2026-09-21T07:18:49.351Z",
+  "entries": [
+    {
+      "at": "2026-09-19T12:30:02.896Z",
+      "email": "kajal.sinha@embee.co.in",
+      "row": 10,
+      "company": "Embee",
+      "contactName": "Kajal Sinha",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<d7f5aefe-1b5d-4fa1-6f2b-7a974b6174d9@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T06:58:37.490Z",
+      "email": "amruta.chitre@powerweave.com",
+      "row": 13,
+      "company": "Powerweave",
+      "contactName": "Amruta Chitre",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<2ac951ec-385b-e5b9-3df4-044e1940b530@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:01:08.714Z",
+      "email": "varsha.kamble@powerweave.com",
+      "row": 14,
+      "company": "Powerweave",
+      "contactName": "Varsha Kamble",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<c683e356-248e-3556-02e1-17ab85607b46@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:01:55.828Z",
+      "email": "hetal.patil@swansol.com",
+      "row": 16,
+      "company": "Swan Solutions",
+      "contactName": "Hetal Patil",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<c6ab35eb-897f-a206-8014-a96e587120b4@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:02:55.478Z",
+      "email": "sarita@swansol.com",
+      "row": 17,
+      "company": "Swan Solutions",
+      "contactName": "Sarita",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<d6acc0e9-7023-b6a9-9e66-6769fc938066@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:03:45.487Z",
+      "email": "sanjeev.singh@rigvedtech.com",
+      "row": 21,
+      "company": "Rigved Technologies",
+      "contactName": "Sanjeev Singh",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<882e0c1f-9c00-94ca-ea27-ae7e841bf15c@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:04:55.918Z",
+      "email": "tejashree.mane@simplelogic.in",
+      "row": 23,
+      "company": "SimpleLogic",
+      "contactName": "Tejashree Mane",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<b0b77ef6-0a61-375d-42ff-cf9a42836e63@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:17:42.524Z",
+      "email": "jiten@crescibit.com",
+      "row": 24,
+      "company": "Crescibit",
+      "contactName": "Jiten Shah",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<a9c83f74-1791-d4da-66eb-ea04e9659c05@gmail.com>"
+    },
+    {
+      "at": "2026-09-21T07:18:49.351Z",
+      "email": "arsh@crescibit.com",
+      "row": 25,
+      "company": "Crescibit",
+      "contactName": "Arsh Shaikh",
+      "step": "application",
+      "status": "sent",
+      "subject": "Application for Frontend / Full Stack Developer – Mudassir Shaikh",
+      "messageId": "<a332aeb6-87c7-02ac-1a3c-0fb8d4c66296@gmail.com>"
+    }
+  ]
+}
